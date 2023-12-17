@@ -31,6 +31,14 @@ export const signin = async (req,res,next)=>{
         const validPassword = bcryptjs.compareSync(password,validuser.password)
          if(!validPassword)return next(errorHandler(401,'Wrong credentials'))
          const token = jwt.sign({id:validuser._id},process.env.JWT_SECRET)
+        
+         const {password: hashedPasword,...rest} = validuser._doc;
+         const expiryDate = new Date(Date.now()+3600000000)
+
+         
+
+
+        res.cockies('access_token',token,{httpOnly:true,expires:expiryDate}).status(200).json(rest )
      }catch(error){
 
     }
