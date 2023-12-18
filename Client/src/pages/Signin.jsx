@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Link ,useNavigate} from "react-router-dom";
+import { signInFailure,signInSuccess,signInStart } from "../../redux/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Signin() {
     const [formData, setFormData] = useState({})
-    const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(false)
+    const {loading, error} = useSelector((state)=>state.user)
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
 
     const handleChange = (e) => {
@@ -16,8 +18,7 @@ export default function Signin() {
         e.preventDefault()
 
         try {
-            setLoading(true)
-            setError(false)
+             dispatch(signInStart())
             const res = await fetch('/api/auth/signin', {
                 method: 'POST',
                 headers: {
@@ -25,16 +26,24 @@ export default function Signin() {
                 },
                 body: JSON.stringify(formData)
             })
+            console.log("its coming");
             const data = await res.json()
-            setLoading(false)
+            console.log('before data',data)
+            dispatch(signInSuccess(data))
+            console.log('after data',data)
+            console.log("2")
             if(data.success === false){
-                setError(true)
+                console.log('3')
+                dispatch(signInFailure(data))
                 return
             }
-            setError(false)
+            console.log("4")
+              dispatch(signInSuccess(data))
+            navigate('/')
         } catch (error) {
-            setLoading(false)
-            setError(true)
+            console.log(error,"YFhuf");
+            console.log("5")
+            dispatch(signInFailure(error))
         }
 
     }
@@ -52,7 +61,7 @@ export default function Signin() {
                     id="password" onChange={handleChange}
                     className="bg-slate-100 p-3 rounded-lg" />
                 <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80" type="submit" >
-                    {loading ? 'Loading...':'Sing up'}</button>
+                    {loading ? 'Loading...':'Sing In'}</button>
             </form>
             <div className="flex gap-2 mt-5">
                 <p>Dont have an account ?</p>
@@ -60,7 +69,8 @@ export default function Signin() {
                     <span className="text-blue-500" >Sign up</span>
                 </Link>
             </div>
-            <p className="text-red-700 mt-5">{error&& 'Something went wrong'}</p>
+            {console.log(error ?error.message:'no error message')}
+            <p className="text-red-700 mt-5">{error ? error.message || 'Something went wrong' : ""} </p>
         </div>
     )
 }
